@@ -1,0 +1,43 @@
+  
+from typing import Optional
+# 定义链表节点类class ListNode:
+    # 初始化节点，默认值为0，next指针默认为None
+    def __init__(self, val=0, next=None):
+        self.val = val  # 节点存储的值
+        self.next = next  # 指向下一个节点的指针
+class Solution:
+    # 迭代法反转链表：接收链表头节点，返回反转后的链表头节点
+    def reverselist(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        # 处理空链表情况，直接返回None
+        if head is None:
+            return None
+        
+        pre = None  # 前驱节点，初始为None（反转后链表的尾部）
+        cur = head  # 当前节点，从原链表头节点开始
+        
+        # 遍历原链表（直到当前节点的下一个节点为None）
+        while cur.next is not None:
+            nxt = cur.next  # 暂存当前节点的下一个节点（防止后续操作丢失）
+            cur.next = pre  # 反转当前节点的指针，指向前驱节点
+            pre = cur       # 前驱节点向后移动一位（更新为当前节点）
+            cur = nxt       # 当前节点向后移动一位（使用暂存的下一个节点）
+        
+        # 处理最后一个节点（此时cur指向原链表尾节点）
+        cur.next = pre
+        return cur  # 原尾节点成为反转后链表的头节点
+
+    # 递归法反转链表：接收链表头节点，返回反转后的链表头节点
+    def recursive_reverse_list(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        # 递归终止条件：空链表或只有一个节点时，直接返回自身（无需反转）
+        if head is None or head.next is None:
+            return head
+        
+        # 递归反转当前节点之后的所有节点，返回反转后的子链表头节点
+        rest_head = self.recursive_reverse_list(head.next)
+        
+        # 反转当前节点与下一个节点的指针关系
+        head.next.next = head  # 让下一个节点指向当前节点
+        head.next = None       # 断开当前节点原有的next指针（避免循环）
+        
+        # 返回反转后的整个链表头节点（即递归得到的子链表头节点）
+        return rest_head
