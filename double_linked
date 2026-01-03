@@ -1,0 +1,140 @@
+
+# 导入自定义异常类，用于处理空链表操作错误from no_element import NoElement
+   class DoublyLinkedList:
+    """
+    一个基础的双向链表实现。
+    链表包含头哨兵（_header）和尾哨兵（_trailer），所有元素节点存储在两个哨兵之间，
+    支持首尾添加、首尾删除、遍历等核心操作，通过双向指针（prev/next）实现节点间关联。
+    """
+
+    class Node:
+        """
+        双向链表的节点类，用于存储单个元素及前后节点引用。
+        每个节点包含三个属性：元素值、前驱节点引用、后继节点引用。
+        """
+        def __init__(self, item=None, prev=None, nxt=None):
+            self.item = item  # 存储节点的数据元素，默认为None
+            self.prev = prev  # 指向当前节点的前驱节点，默认为None
+            self.next = nxt  # 指向当前节点的后继节点，默认为None
+
+    def __init__(self):
+        """初始化空双向链表，创建头哨兵和尾哨兵并建立初始关联"""
+        self._header = self.Node()  # 头哨兵节点，不存储实际数据
+        # 尾哨兵节点，前驱指向头哨兵，不存储实际数据
+        self._trailer = self.Node(None, self._header, None)
+        self._header.next = self._trailer  # 头哨兵的后继指向尾哨兵
+        self._size = 0  # 记录链表中实际元素的个数，初始为0
+
+    def size(self):
+        """返回链表中实际元素的个数"""
+        return self._size
+
+    def is_empty(self):
+        """判断链表是否为空，空则返回True，否则返回False"""
+        return self._size == 0
+
+    def first(self):
+        """
+        获取链表的第一个实际元素（头哨兵的下一个节点）。
+        若链表为空，返回None；否则返回第一个元素的值。
+        """
+        if self.is_empty():
+            return None
+        else:
+            return self._header.next.item
+
+    def last(self):
+        """
+        获取链表的最后一个实际元素（尾哨兵的前一个节点）。
+        若链表为空，返回None；否则返回最后一个元素的值。
+        """
+        if self.is_empty():
+            return None
+        else:
+            return self._trailer.prev.item
+
+    def _add_between(self, item, predecessor, successor):
+        """
+        私有辅助方法：在指定的前驱节点（predecessor）和后继节点（successor）之间插入新节点。
+        该方法是add_first和add_last的核心实现，避免代码重复。
+        :param item: 要插入的元素值
+        :param predecessor: 新节点的前驱节点
+        :param successor: 新节点的后继节点
+        """
+        # 创建新节点，前驱指向predecessor，后继指向successor
+        node = self.Node(item, predecessor, successor)
+        predecessor.next = node  # 更新前驱节点的后继为新节点
+        successor.prev = node  # 更新后继节点的前驱为新节点
+        self._size += 1  # 链表元素个数加1
+
+    def add_first(self, item):
+        """
+        在链表头部（头哨兵和第一个实际节点之间）插入元素。
+        :param item: 要插入的元素值
+        """
+        self._add_between(item, self._header, self._header.next)
+
+    def add_last(self, item):
+        """
+        在链表尾部（最后一个实际节点和尾哨兵之间）插入元素。
+        :param item: 要插入的元素值
+        """
+        self._add_between(item, self._trailer.prev, self._trailer)
+
+    def _remove(self, node):
+        """
+        私有辅助方法：移除指定的节点（必须是实际元素节点，非哨兵）。
+        该方法是remove_first和remove_last的核心实现，避免代码重复。
+        :param node: 要移除的节点对象
+        """
+        predecessor = node.prev  # 获取待移除节点的前驱
+        successor = node.next  # 获取待移除节点的后继
+        predecessor.next = successor  # 前驱节点直接指向后继节点，跳过待移除节点
+        successor.prev = predecessor  # 后继节点直接指向前驱节点，跳过待移除节点
+        self._size -= 1  # 链表元素个数减1
+
+    def remove_first(self):
+        """
+        移除并丢弃链表的第一个实际元素（头哨兵的下一个节点）。
+        若链表为空，抛出NoElement异常。
+        """
+        if self.is_empty():
+            raise NoElement("无法移除空链表的第一个元素")
+        self._remove(self._header.next)  # 移除头哨兵的下一个节点（第一个实际元素）
+
+    def remove_last(self):
+        """
+        移除并丢弃链表的最后一个实际元素（尾哨兵的前一个节点）。
+        若链表为空，抛出NoElement异常。
+        """
+        if self.is_empty():
+            raise NoElement("无法移除空链表的最后一个元素")
+        self._remove(self._trailer.prev)  # 移除尾哨兵的前一个节点（最后一个实际元素）
+
+    def __iter__(self):
+        """
+        实现链表的可迭代性，支持for循环遍历。
+        返回自定义的迭代器对象，从第一个实际元素开始遍历。
+        """
+        return self.DoublyIterator(self._header.next, self._trailer)
+
+    class DoublyIterator:
+        """
+        双向链表的迭代器类，实现__next__方法以支持迭代遍历。
+        遍历从起始节点开始，直到遇到尾哨兵结束。
+        """
+        def __init__(self, node, trailer):
+            self.walk = node  # 当前遍历到的节点，初始为起始节点（第一个实际元素）
+            self.trailer = trailer  # 尾哨兵节点，作为遍历结束的标志
+
+        def __next__(self):
+            """
+            迭代器核心方法：返回当前节点的元素，并移动到下一个节点。
+            若已遍历到尾哨兵，抛出StopIteration异常结束遍历。
+            :return: 当前节点的元素值
+            """
+            if self.walk is self.trailer:  # 若已到达尾哨兵，结束遍历
+                raise StopIteration
+            answer = self.walk.item  # 保存当前节点的元素值
+            self.walk = self.walk.next  # 移动到下一个节点
+            return answer
