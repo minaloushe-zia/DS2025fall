@@ -1,0 +1,50 @@
+链表：
+遍历模式：
+current = self.head
+while current is not None:
+    # 对current进行操作
+    if current.data == target:
+        # 找到目标
+    current = current.next
+插入模式“
+# 在头部插入
+new_node = Node(new_data)
+new_node.next = self.head
+self.head = new_node
+
+# 在中间插入（在target_node后插入）
+new_node = Node(new_data)
+new_node.next = target_node.next
+target_node.next = new_node
+删除模式：
+# 删除头节点
+if self.head is not None:
+    self.head = self.head.next
+
+# 删除中间节点（需要找到前驱节点）
+prev = None
+current = self.head
+while current and current.data != target:
+    prev = current
+    current = current.next
+
+if current:  # 找到了
+    if prev:  # 不是头节点
+        prev.next = current.next
+    else:     # 是头节点
+        self.head = current.next
+双向链表特殊注意：
+# 插入时维护prev指针
+new_node = Node(new_data)
+new_node.prev = target_node
+new_node.next = target_node.next
+if target_node.next:  # 如果不是最后一个节点
+    target_node.next.prev = new_node
+target_node.next = new_node
+
+# 删除时维护prev指针
+if node_to_delete.prev:
+    node_to_delete.prev.next = node_to_delete.next
+if node_to_delete.next:
+    node_to_delete.next.prev = node_to_delete.prev
+ 
