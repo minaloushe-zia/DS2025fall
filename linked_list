@@ -1,0 +1,185 @@
+class Node:
+    """链表的节点类，存储单个元素及指向下一节点的引用"""
+    def __init__(self, item, nxt=None):
+        self.item = item  # 节点存储的数据元素
+        self.next = nxt  # 指向下一个节点的引用，默认None
+
+class LinkedList:
+    """单向链表类，提供链表的常见操作"""
+
+    def __init__(self):
+        self._head = None  # 链表头节点引用，初始为空
+        self._tail = None  # 链表尾节点引用，初始为空
+        self._size = 0     # 链表中元素的个数，初始为0
+
+    def size(self):
+        """返回链表的元素个数"""
+        return self._size
+
+    def is_empty(self):
+        """判断链表是否为空，空返回True，否则返回False"""
+        return self.size() == 0
+
+    def add_first(self, item):
+        """在链表头部添加元素item"""
+        # 创建新节点，新节点的next指向原头节点
+        node = Node(item)
+        node.next = self._head
+        # 更新头节点为新创建的节点
+        self._head = node
+        # 若原链表为空，尾节点也需指向该新节点（此时头尾节点相同）
+        if self._tail is None:
+            self._tail = node
+        # 链表元素个数加1
+        self._size += 1
+
+    def add_last(self, item):
+        """在链表尾部添加元素item"""
+        # 暂存原尾节点
+        old_tail = self._tail
+        # 创建新节点作为新尾节点
+        self._tail = Node(item)
+        # 若原链表为空，头节点也指向新尾节点（此时头尾节点相同）
+        if old_tail is None:
+            self._head = self._tail
+        # 若原链表非空，原尾节点的next指向新尾节点
+        else:
+            old_tail.next = self._tail
+        # 链表元素个数加1
+        self._size += 1
+
+    def remove_first(self):
+        """删除并返回链表头部元素，链表为空时抛出IndexError"""
+        # 空链表删除操作直接抛异常
+        if self.is_empty():
+            raise IndexError('Remove from empty linked list')
+        # 保存原头节点的值（后续返回）
+        removed_item = self._head.item
+        # 更新头节点为原头节点的下一个节点
+        self._head = self._head.next
+        # 若删除后链表为空，尾节点也置为None
+        if self._head is None:
+            self._tail = None
+        # 链表元素个数减1
+        self._size -= 1
+        # 返回被删除的元素
+        return removed_item
+
+    def remove_last(self):
+        """删除并返回链表尾部元素，链表为空时抛出IndexError"""
+        # 空链表删除操作直接抛异常
+        if self.is_empty():
+            raise IndexError('Remove from empty linked list')
+        # 保存原尾节点的值（后续返回）
+        removed_item = self._tail.item
+        # 若链表只有一个元素，删除后头尾节点均置为None
+        if self._head is self._tail:
+            self._head = None
+            self._tail = None
+        # 若链表有多个元素，遍历找到尾节点的前驱节点
+        else:
+            walk = self._head
+            # 循环直到找到"下一个节点是尾节点"的节点（即尾前驱）
+            while walk.next is not self._tail:
+                walk = walk.next
+            # 断开尾前驱与原尾节点的连接，更新尾节点为尾前驱
+            walk.next = None
+            self._tail = walk
+        # 链表元素个数减1
+        self._size -= 1
+        # 返回被删除的元素
+        return removed_item
+
+    def index_of(self, item):
+        """查找元素item在链表中的索引，找到返回索引（从0开始），未找到返回-1"""
+        idx = -1  # 索引初始值为-1（未找到状态）
+        walk = self._head  # 从 head 开始遍历
+        while walk is not None:
+            idx += 1  # 每遍历一个节点，索引加1
+            # 找到目标元素，返回当前索引
+            if walk.item == item:
+                return idx
+            # 未找到则继续遍历下一个节点
+            else:
+                walk = walk.next
+        # 遍历完整个链表仍未找到，返回-1
+        return -1
+
+    def _get_node(self, i) -> Node:
+        """私有方法：获取索引为i的节点，索引越界抛出IndexError"""
+        # 检查索引是否在有效范围内（0 <= i < 链表长度）
+        if i < 0 or i >= self._size:
+            raise IndexError('Out of bounds')
+        cnt = 0  # 计数变量，记录当前遍历到的索引
+        walk = self._head  # 从 head 开始遍历
+        # 遍历到索引为i的节点
+        while cnt < i:
+            walk = walk.next
+            cnt += 1
+        # 返回索引为i的节点
+        return walk
+
+    def get(self, i):
+        """获取索引为i的元素值，索引越界抛出IndexError"""
+        # 调用私有方法获取索引i对应的节点
+        walk = self._get_node(i)
+        assert walk is not None  # 断言节点非空（确保逻辑正确性）
+        return walk.item  # 返回节点存储的元素值
+
+    def set(self, i, item):
+        """将索引为i的元素值设为item，索引越界抛出IndexError"""
+        # 调用私有方法获取索引i对应的节点
+        walk = self._get_node(i)
+        assert walk is not None  # 断言节点非空（确保逻辑正确性）
+        walk.item = item  # 更新节点的元素值
+
+    def insert(self, i, item):
+        """在索引i的位置插入元素item，索引越界抛出IndexError"""
+        # 检查索引是否在有效范围内（0 <= i <= 链表长度）
+        if i < 0 or i > self._size:
+            raise IndexError('Out of bounds')
+        # 插入位置为头部，直接调用add_first方法
+        if i == 0:
+            self.add_first(item)
+        # 插入位置为尾部，直接调用add_last方法
+        elif i == self._size:
+            self.add_last(item)
+        # 插入位置在中间
+        else:
+            # 找到索引i-1的节点（插入位置的前驱节点）
+            walk = self._get_node(i-1)
+            # 暂存原索引i的节点（前驱节点原本的next）
+            ith = walk.next
+            # 创建新节点，前驱节点的next指向新节点，新节点的next指向原i节点
+            node = Node(item)
+            walk.next = node
+            node.next = ith
+            # 链表元素个数加1
+            self._size += 1
+
+    def clear(self):
+        """清空链表，删除所有元素"""
+        # 循环删除头部元素，直到链表为空
+        while not self.is_empty():
+            self.remove_first()
+
+    def __iter__(self):
+        """使链表支持迭代（for循环遍历），返回迭代器对象"""
+        return LinkedListIterator(self._head)
+
+class LinkedListIterator:
+    """链表的迭代器类，实现迭代功能"""
+    def __init__(self, head: Node):
+        self.walk = head  # 迭代起始位置为链表头节点
+
+    def __next__(self):
+        """迭代器的next方法，返回当前元素并移动到下一个节点"""
+        # 若遍历到链表尾部（walk为None），抛出StopIteration结束迭代
+        if self.walk is None:
+            raise StopIteration
+        # 保存当前节点的元素值
+        answer = self.walk.item
+        # 移动到下一个节点
+        self.walk = self.walk.next
+        # 返回当前节点的元素值
+        return answer
